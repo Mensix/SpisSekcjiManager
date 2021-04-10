@@ -45,8 +45,6 @@ namespace SpisSekcjiManager
 
         [JsonProperty("autoUpdate", Required = Required.Always, NullValueHandling = NullValueHandling.Ignore)]
         public bool? AutoUpdate { get; set; }
-        [JsonProperty("shouldUpdateStatus", Required = Required.Always, NullValueHandling = NullValueHandling.Ignore)]
-        public bool? ShouldUpdateStatus { get; set; }
     }
 
     public partial class Setup

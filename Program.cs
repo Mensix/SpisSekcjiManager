@@ -19,7 +19,7 @@ namespace SpisSekcjiManager
             chromeOptions.AddArgument("--disable-browser-side-navigation");
             chromeOptions.AddArgument("--disable-gpu");
 
-            Setup setup = Setup.FromJson(File.ReadAllText($"{AppDomain.CurrentDomain.BaseDirectory}/data/settings.json"));
+            Setup setup = Setup.FromJson(File.ReadAllText($"{Directory.GetCurrentDirectory()}/data/settings.json"));
 
             Console.Clear();
             Console.WriteLine("=======================");
@@ -28,11 +28,9 @@ namespace SpisSekcjiManager
 
             Console.WriteLine("[1] - Parsowanie grup");
             Console.WriteLine("[2] - Naprawa grup");
-            Console.WriteLine("[3] - Przyrownaj grupy");
-            Console.WriteLine("[4] - Zaaktualizuj dane");
-            Console.WriteLine("[5] - Odswiez ustawienia");
-            Console.WriteLine("[6] - Zresetuj status");
-            Console.WriteLine("[7] - Wyczyść prośby o dodanie grup");
+            Console.WriteLine("[3] - Zaaktualizuj dane");
+            Console.WriteLine("[4] - Odswiez ustawienia");
+            Console.WriteLine("[5] - Wyczyść prośby o dodanie grup");
             Console.WriteLine();
 
             Console.Write("Podaj swoj wybor: ");
@@ -50,61 +48,43 @@ namespace SpisSekcjiManager
 
             if (userChoice == "1")
             {
-                ChromeDriver chromeDriver = new ChromeDriver(AppDomain.CurrentDomain.BaseDirectory, chromeOptions);
+                ChromeDriver chromeDriver = new ChromeDriver(Directory.GetCurrentDirectory(), chromeOptions);
                 User user = new User() { Email = setup.Login, Password = setup.Password };
                 chromeDriver.FacebookLogin(user);
 
                 for (int i = 0; i < setup.Files.Count; i++)
                 {
-                    oldGroups = Dataset.FromJson(File.ReadAllText(Path.Combine($"{AppDomain.CurrentDomain.BaseDirectory}/data/{setup.Files[i].Input}")));
-                    newGroups = GroupUtils.ParseGroups(chromeDriver, setup, oldGroups);
+                    oldGroups = Dataset.FromJson(File.ReadAllText(Path.Combine($"{Directory.GetCurrentDirectory()}/data/{setup.Files[i].Input}")));
+                    newGroups = GroupUtils.ParseGroups(chromeDriver, oldGroups);
 
                     if (setup.Settings.AutoFix == true) newGroups = GroupUtils.FixGroups(newGroups);
                     if (setup.Settings.AutoCompare == true) newGroups = GroupUtils.CompareGroups(oldGroups, newGroups);
                     if (setup.Settings.AutoUpdate == true && setup.Files[i].Path != null) FirebaseUtils.PostGroups(newGroups, setup, i);
-                    if (i == setup.Files.Count - 1 && setup.Settings.ShouldUpdateStatus == true) FirebaseUtils.InitStatus(setup, newGroups);
 
-                    File.WriteAllText(Path.Combine($"{AppDomain.CurrentDomain.BaseDirectory}/data/{setup.Files[i].Output}"), newGroups.ToJson());
+                    File.WriteAllText(Path.Combine($"{Directory.GetCurrentDirectory()}/data/{setup.Files[i].Output}"), newGroups.ToJson());
                 }
             }
             else if (userChoice == "2")
             {
                 for (int i = 0; i < setup.Files.Count; i++)
                 {
-                    oldGroups = Dataset.FromJson(File.ReadAllText(Path.Combine($"{AppDomain.CurrentDomain.BaseDirectory}/data/{setup.Files[i].Input}")));
-                    File.WriteAllText(Path.Combine($"{AppDomain.CurrentDomain.BaseDirectory}/data/{setup.Files[i].Output}"), GroupUtils.FixGroups(oldGroups).ToJson());
+                    oldGroups = Dataset.FromJson(File.ReadAllText(Path.Combine($"{Directory.GetCurrentDirectory()}/data/{setup.Files[i].Input}")));
+                    File.WriteAllText(Path.Combine($"{Directory.GetCurrentDirectory()}/data/{setup.Files[i].Output}"), GroupUtils.FixGroups(oldGroups).ToJson());
                 }
             }
             else if (userChoice == "3")
             {
                 for (int i = 0; i < setup.Files.Count; i++)
                 {
-                    oldGroups = Dataset.FromJson(File.ReadAllText(Path.Combine($"{AppDomain.CurrentDomain.BaseDirectory}/data/{setup.Files[i].Input}")));
-                    newGroups = Dataset.FromJson(File.ReadAllText(Path.Combine($"{AppDomain.CurrentDomain.BaseDirectory}/data/{setup.Files[i].Output}")));
-                    File.WriteAllText(Path.Combine($"{AppDomain.CurrentDomain.BaseDirectory}/data/{setup.Files[i].Output}"), GroupUtils.CompareGroups(oldGroups, newGroups).ToJson());
+                    newGroups = Dataset.FromJson(File.ReadAllText(Path.Combine($"{Directory.GetCurrentDirectory()}/data/{setup.Files[i].Input}")));
+                    if (setup.Files[i].Path != null) FirebaseUtils.PostGroups(newGroups, setup, i);
                 }
             }
             else if (userChoice == "4")
             {
-                for (int i = 0; i < setup.Files.Count; i++)
-                {
-                    newGroups = Dataset.FromJson(File.ReadAllText(Path.Combine($"{AppDomain.CurrentDomain.BaseDirectory}/data/{setup.Files[i].Input}")));
-                    if (setup.Files[i].Path != null) FirebaseUtils.PostGroups(newGroups, setup, i);
-                }
+                Setup.FromJson(File.ReadAllText($"{Directory.GetCurrentDirectory()}/data/settings.json"));
             }
             else if (userChoice == "5")
-            {
-                Setup.FromJson(File.ReadAllText($"{AppDomain.CurrentDomain.BaseDirectory}/data/settings.json"));
-            }
-            else if (userChoice == "6")
-            {
-                for (int i = 0; i < setup.Files.Count; i++)
-                {
-                    newGroups = Dataset.FromJson(File.ReadAllText(Path.Combine($"{AppDomain.CurrentDomain.BaseDirectory}/data/{setup.Files[i].Input}")));
-                    FirebaseUtils.InitStatus(setup, newGroups);
-                }
-            }
-            else if (userChoice == "7")
             {
                 FirebaseUtils.ClearSubmissions(setup);
             }

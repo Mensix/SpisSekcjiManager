@@ -10,9 +10,8 @@ The tool used by me to manage [sections list](https://sekcje.github.io/). Writte
 ## Installation
 
 1. Clone this repository
-2. Run `dotnet run` command
-3. Move to bin/Debug/netcoreapp3.1 directory and paste chromedriver.exe file
-4. Create data folder in bin/Debug/netcoreapp3.1 directory
+3. Move to root directory and paste chromedriver.exe file
+4. Create data folder in root directory
 5. Make two files in data folder: groups.json and settings.json
 6. In groups.json put example content  
 
@@ -23,19 +22,19 @@ The tool used by me to manage [sections list](https://sekcje.github.io/). Writte
   "groups": [
     {
       "category": "Nauka",
-      "link": "https://facebook.com/groups/277362736085803",
+      "link": "277362736085803",
       "members": 92106,
       "membersGrowth": 1516,
       "name": "Ciekawostkawka"
     },
     {
-      "link": "https://facebook.com/groups/postnostalgawka",
+      "link": "postnostalgawka",
       "members": 80412,
       "membersGrowth": 1073,
       "name": "Jak będzie w 2030?"
     },
     {
-      "link": "https://facebook.com/groups/375622829809203",
+      "link": "375622829809203",
       "members": 77827,
       "membersGrowth": 1174,
       "name": "Perfekcjonizmawka"
@@ -60,8 +59,7 @@ The tool used by me to manage [sections list](https://sekcje.github.io/). Writte
   "settings": {
     "autoFix": true,
     "autoCompare": true,
-    "autoUpdate": false,
-    "shouldUpdateStatus": false
+    "autoUpdate": false
   }
 }
 ```
@@ -92,7 +90,6 @@ export interface Settings {
     autoFix:             boolean;
     autoCompare:         boolean;
     autoUpdate:          boolean;
-    shouldUpdateStatus:  boolean;
 }
 ```
 

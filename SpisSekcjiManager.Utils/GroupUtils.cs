@@ -12,7 +12,7 @@ namespace SpisSekcjiManager.Utils
 {
     public static class GroupUtils
     {
-        public static Dataset ParseGroups(ChromeDriver chromeDriver, Setup setup, Dataset groups)
+        public static Dataset ParseGroups(ChromeDriver chromeDriver, Dataset groups)
         {
             int oldGroupsCount = groups.Groups.Count;
             List<Group> newGroups = new List<Group>();
@@ -49,11 +49,10 @@ namespace SpisSekcjiManager.Utils
                             });
                         }
                         progressBar.Tick($"{i + 1}/{oldGroupsCount}");
-                        if (setup.Settings.ShouldUpdateStatus == true) FirebaseUtils.UpdateStatus(setup, groups, i, oldGroupsCount);
                     }
                     catch (Exception)
                     {
-                        File.WriteAllText(Path.Combine(AppDomain.CurrentDomain.BaseDirectory + $"/data/{groups.Name}_ERR"), new Dataset
+                        File.WriteAllText(Path.Combine(Directory.GetCurrentDirectory() + $"/data/{groups.Name}_ERR"), new Dataset
                         {
                             LastUpdateDate = DateTime.Now.ToString("dd/MM/yyyy").Replace(".", "/"),
                             Name = groups.Name,
