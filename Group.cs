@@ -40,7 +40,7 @@ namespace SpisSekcjiManager
         public bool? IsOpen { get; set; }
 
         [JsonProperty("keywords", Required = Required.DisallowNull, NullValueHandling = NullValueHandling.Ignore)]
-        public string Keywords { get; set; }
+        public List<string> Keywords { get; set; }
     }
 
     public partial struct Category
