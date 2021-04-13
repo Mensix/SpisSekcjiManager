@@ -1,19 +1,17 @@
-using System.Threading;
-using OpenQA.Selenium;
-using OpenQA.Selenium.Chrome;
+using System.Threading.Tasks;
+using PlaywrightSharp;
 
 namespace SpisSekcjiManager.Utils
 {
     public static class FacebookExtensions
     {
-        public static void FacebookLogin(this ChromeDriver chromeDriver, User user)
+        public static async Task Login(this IPage page, string email, string password)
         {
-            chromeDriver.Navigate().GoToUrl("https://mbasic.facebook.com/login.php/");
-            chromeDriver.FindElement(By.CssSelector("button.t")).Click();
-            Thread.Sleep(500);
-            chromeDriver.FindElement(By.CssSelector("input[name='email']")).SendKeys(user.Email);
-            chromeDriver.FindElement(By.CssSelector("input[name='pass']")).SendKeys(user.Password);
-            chromeDriver.FindElement(By.CssSelector("input[name='login']")).Click();
+            await page.GoToAsync("https://mbasic.facebook.com/login.php/").ConfigureAwait(false);
+            await page.ClickAsync("button.t").ConfigureAwait(false);
+            await page.FillAsync("input[name='email']", email).ConfigureAwait(false);
+            await page.FillAsync("input[name='pass']", password).ConfigureAwait(false);
+            await page.ClickAsync("input[name='login']").ConfigureAwait(false);
         }
     }
 }

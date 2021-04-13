@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using Firebase.Database;
 using Firebase.Database.Query;
 
@@ -5,14 +6,14 @@ namespace SpisSekcjiManager.Utils
 {
     public static class FirebaseUtils
     {
-        public async static void PostGroups(Dataset dataset, Setup setup, int index)
+        public async static Task PostGroups(Dataset dataset, Setup setup, int index)
         {
-            var firebase = new FirebaseClient(setup.Settings.FirebaseLink);
-            string newGroupsStr = dataset.ToJson();
-            await firebase.Child(setup.Files[index].Path).PutAsync(newGroupsStr).ConfigureAwait(false);
+            FirebaseClient firebase = new(setup.Settings.FirebaseLink);
+            await firebase.Child(setup.Files[index]).PutAsync(SerializeGroups.ToString(dataset)).ConfigureAwait(false);
         }
 
-        public async static void ClearSubmissions(Setup setup) {
+        public async static Task ClearSubmissions(Setup setup)
+        {
             var firebase = new FirebaseClient(setup.Settings.FirebaseLink);
             await firebase.Child("submissions").DeleteAsync().ConfigureAwait(false);
         }

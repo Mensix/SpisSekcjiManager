@@ -1,29 +1,26 @@
 ﻿using System;
 using System.IO;
-using OpenQA.Selenium.Chrome;
+using System.Threading.Tasks;
+using PlaywrightSharp;
+using PlaywrightSharp.Chromium;
 using SpisSekcjiManager.Utils;
 
 namespace SpisSekcjiManager
 {
     internal static class Program
     {
-        private static void Main(string[] args)
+        private static async Task Main(string[] args)
         {
-            ChromeOptions chromeOptions = new ChromeOptions();
-            chromeOptions.AddArgument("--no-sandbox");
-            chromeOptions.AddArgument("start-maximized");
-            chromeOptions.AddArgument("enable-automation");
-            chromeOptions.AddArgument("--no-sandbox");
-            chromeOptions.AddArgument("--disable-infobars");
-            chromeOptions.AddArgument("--disable-dev-shm-usage");
-            chromeOptions.AddArgument("--disable-browser-side-navigation");
-            chromeOptions.AddArgument("--disable-gpu");
+            string dataDirectory = $"{Directory.GetCurrentDirectory()}/data";
+            Setup setup = Setup.FromJson();
+            Dataset oldGroups, newGroups;
 
-            Setup setup = Setup.FromJson(File.ReadAllText($"{Directory.GetCurrentDirectory()}/data/settings.json"));
+            using var playwright = await Playwright.CreateAsync().ConfigureAwait(false);
+            await using IChromiumBrowser browser = await playwright.Chromium.LaunchAsync().ConfigureAwait(false);
+            IPage page = await browser.NewPageAsync().ConfigureAwait(false);
 
-            Console.Clear();
             Console.WriteLine("=======================");
-            Console.WriteLine("Spis Sekcji Manager v1");
+            Console.WriteLine("Spis Sekcji Manager v2");
             Console.WriteLine("=======================");
 
             Console.WriteLine("[1] - Parsowanie grup");
@@ -44,53 +41,48 @@ namespace SpisSekcjiManager
             }
 
             Console.Clear();
-            Dataset oldGroups, newGroups;
 
             if (userChoice == "1")
             {
-                ChromeDriver chromeDriver = new ChromeDriver(Directory.GetCurrentDirectory(), chromeOptions);
-                User user = new User() { Email = setup.Login, Password = setup.Password };
-                chromeDriver.FacebookLogin(user);
+                await page.Login(setup.Login, setup.Password).ConfigureAwait(false);
 
                 for (int i = 0; i < setup.Files.Count; i++)
                 {
-                    oldGroups = Dataset.FromJson(File.ReadAllText(Path.Combine($"{Directory.GetCurrentDirectory()}/data/{setup.Files[i].Input}")));
-                    newGroups = GroupUtils.ParseGroups(chromeDriver, oldGroups);
+                    oldGroups = Dataset.FromJson($"{setup.Files[i]}");
+                    newGroups = await GroupUtils.ParseGroups(page, oldGroups).ConfigureAwait(false);
 
                     if (setup.Settings.AutoFix == true) newGroups = GroupUtils.FixGroups(newGroups);
                     if (setup.Settings.AutoCompare == true) newGroups = GroupUtils.CompareGroups(oldGroups, newGroups);
-                    if (setup.Settings.AutoUpdate == true && setup.Files[i].Path != null) FirebaseUtils.PostGroups(newGroups, setup, i);
+                    if (setup.Settings.AutoUpdate == true) await FirebaseUtils.PostGroups(newGroups, setup, i).ConfigureAwait(false);
 
-                    File.WriteAllText(Path.Combine($"{Directory.GetCurrentDirectory()}/data/{setup.Files[i].Output}"), newGroups.ToJson());
+                    newGroups.ToJson($"{setup.Files[i]}-o.json");
                 }
             }
             else if (userChoice == "2")
             {
                 for (int i = 0; i < setup.Files.Count; i++)
                 {
-                    oldGroups = Dataset.FromJson(File.ReadAllText(Path.Combine($"{Directory.GetCurrentDirectory()}/data/{setup.Files[i].Input}")));
-                    File.WriteAllText(Path.Combine($"{Directory.GetCurrentDirectory()}/data/{setup.Files[i].Output}"), GroupUtils.FixGroups(oldGroups).ToJson());
+                    oldGroups = Dataset.FromJson($"{setup.Files[i]}");
+                    GroupUtils.FixGroups(oldGroups).ToJson($"{setup.Files[i]}-o.json");
                 }
             }
             else if (userChoice == "3")
             {
                 for (int i = 0; i < setup.Files.Count; i++)
                 {
-                    newGroups = Dataset.FromJson(File.ReadAllText(Path.Combine($"{Directory.GetCurrentDirectory()}/data/{setup.Files[i].Input}")));
-                    if (setup.Files[i].Path != null) FirebaseUtils.PostGroups(newGroups, setup, i);
+                    newGroups = Dataset.FromJson($"{setup.Files[i]}");
+                    await FirebaseUtils.PostGroups(newGroups, setup, i).ConfigureAwait(false);
                 }
             }
             else if (userChoice == "4")
             {
-                Setup.FromJson(File.ReadAllText($"{Directory.GetCurrentDirectory()}/data/settings.json"));
+                Setup.FromJson();
             }
             else if (userChoice == "5")
             {
-                FirebaseUtils.ClearSubmissions(setup);
+                await FirebaseUtils.ClearSubmissions(setup).ConfigureAwait(false);
             }
 
-            Console.Clear();
-            Main(args);
         }
     }
 }

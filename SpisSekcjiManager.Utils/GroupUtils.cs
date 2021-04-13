@@ -1,24 +1,19 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
-using System.Web;
-using OpenQA.Selenium;
-using OpenQA.Selenium.Chrome;
+using System.Threading.Tasks;
+using PlaywrightSharp;
 using ShellProgressBar;
 
 namespace SpisSekcjiManager.Utils
 {
     public static class GroupUtils
     {
-        public static Dataset ParseGroups(ChromeDriver chromeDriver, Dataset groups)
+        public static async Task<Dataset> ParseGroups(IPage page, Dataset groups)
         {
-            int oldGroupsCount = groups.Groups.Count;
-            List<Group> newGroups = new List<Group>();
-
-            int totalTicks = groups.Groups.Count;
-            var options = new ProgressBarOptions
+            List<Group> newGroups = new();
+            ProgressBarOptions options = new()
             {
                 DisplayTimeInRealTime = false,
                 ForegroundColor = ConsoleColor.White,
@@ -27,38 +22,27 @@ namespace SpisSekcjiManager.Utils
                 BackgroundCharacter = '\u2593'
             };
 
-            using (var progressBar = new ProgressBar(totalTicks, "Parsing groups...", options))
+            using (var progressBar = new ProgressBar(groups.Groups.Count, "Parsing groups...", options))
             {
                 for (int i = 0; i < groups.Groups.Count; i++)
                 {
-                    try
+                    await page.GoToAsync($"https://mbasic.facebook.com/groups/{groups.Groups[i].Link}").ConfigureAwait(false);
+                    bool groupExists = page.QuerySelectorAllAsync("h1 > div").Result.ToList().Count > 0;
+
+                    if (groupExists)
                     {
-                        chromeDriver.Navigate().GoToUrl($"https://mbasic.facebook.com/groups/{groups.Groups[i].Link}");
-                        bool isGroupPresent = chromeDriver.FindElements(By.CssSelector("h1 > div")).Count > 0;
-                        if (isGroupPresent)
+                        newGroups.Add(new Group
                         {
-                            newGroups.Add(new Group
-                            {
-                                Category = groups.Groups[i].Category,
-                                Link = groups.Groups[i].Link,
-                                Members = ParseMembers(chromeDriver),
-                                Name = HttpUtility.HtmlDecode(chromeDriver.FindElement(By.CssSelector("h1 > div")).GetAttribute("innerText")),
-                                IsSection = groups.Groups[i].IsSection,
-                                Keywords = groups.Groups[i].Keywords,
-                                IsOpen = chromeDriver.FindElement(By.CssSelector("h1 + p")).GetAttribute("innerText") == "Grupa Publiczna"
-                            });
-                        }
-                        progressBar.Tick($"{i + 1}/{oldGroupsCount}");
+                            Category = groups.Groups[i].Category,
+                            Link = groups.Groups[i].Link,
+                            Members = Convert.ToInt32(await page.QuerySelectorAsync("td + td > span").Result.GetInnerTextAsync().ConfigureAwait(false)),
+                            Name = await page.QuerySelectorAsync("h1 > div").Result.GetInnerTextAsync().ConfigureAwait(false),
+                            IsSection = groups.Groups[i].IsSection,
+                            Keywords = groups.Groups[i].Keywords,
+                            IsOpen = await page.QuerySelectorAsync("h1 + p").Result.GetInnerTextAsync().ConfigureAwait(false) == "Grupa Publiczna"
+                        });
                     }
-                    catch (Exception)
-                    {
-                        File.WriteAllText(Path.Combine(Directory.GetCurrentDirectory() + $"/data/{groups.Name}_ERR"), new Dataset
-                        {
-                            LastUpdateDate = DateTime.Now.ToString("dd/MM/yyyy").Replace(".", "/"),
-                            Name = groups.Name,
-                            Groups = newGroups
-                        }.ToJson());
-                    }
+                    progressBar.Tick($"{i + 1}/{groups.Groups.Count}");
                 }
             }
 
@@ -72,7 +56,7 @@ namespace SpisSekcjiManager.Utils
 
         public static Dataset FixGroups(Dataset groups)
         {
-            Random random = new Random();
+            Random random = new();
             return new Dataset()
             {
                 LastUpdateDate = DateTime.Now.ToString("dd/MM/yyyy").Replace(".", "/"),
@@ -110,12 +94,12 @@ namespace SpisSekcjiManager.Utils
             };
         }
 
-        public static Dataset CompareGroups(Dataset oldGroups, Dataset newGroups)
+        public static Dataset CompareGroups(Dataset previousGroups, Dataset newGroups)
         {
             foreach (var n in newGroups.Groups)
             {
-                n.MembersGrowth = n.Members - oldGroups.Groups.Find(x => x.Link == n.Link).Members != 0
-                    ? n.Members - oldGroups.Groups.Find(x => x.Link == n.Link).Members
+                n.MembersGrowth = n.Members - previousGroups.Groups.Find(x => x.Link == n.Link).Members != 0
+                    ? n.Members - previousGroups.Groups.Find(x => x.Link == n.Link).Members
                     : null;
             }
 
@@ -126,7 +110,5 @@ namespace SpisSekcjiManager.Utils
                 Groups = newGroups.Groups
             };
         }
-
-        private static int ParseMembers(ChromeDriver chromeDriver) => chromeDriver.FindElements(By.CssSelector("td > span")).Count > 0 ? Convert.ToInt32(chromeDriver.FindElement(By.CssSelector("td + td > span")).GetAttribute("innerHTML")) : 0;
     }
 }
