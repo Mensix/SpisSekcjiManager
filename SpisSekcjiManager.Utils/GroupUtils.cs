@@ -24,7 +24,7 @@ namespace SpisSekcjiManager.Utils
                 BackgroundCharacter = '\u2593'
             };
 
-            using (ProgressBar progressBar = new ProgressBar(groups.Groups.Count, "Parsing groups...", options))
+            using (ProgressBar progressBar = new(groups.Groups.Count, "Parsing groups...", options))
             {
                 for (int i = 0; i < groups.Groups.Count; i++)
                 {
@@ -122,6 +122,16 @@ namespace SpisSekcjiManager.Utils
                 Name = previousGroups.Name,
                 Groups = newGroups.Groups
             };
+        }
+
+        public static List<Archive> GenerateArchive(List<Archive> archive, Dataset previousGroups)
+        {
+            foreach (Archive a in archive)
+            {
+                a.History.Add(previousGroups.Groups.Find(x => x.Name == a.Name).Members);
+            }
+
+            return archive;
         }
     }
 }

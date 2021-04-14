@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using PlaywrightSharp;
@@ -54,7 +55,13 @@ namespace SpisSekcjiManager
                     if (setup.Settings.AutoFix) newGroups = GroupUtils.FixGroups(newGroups);
                     if (setup.Settings.AutoCompare) newGroups = GroupUtils.CompareGroups(oldGroups, newGroups);
                     if (setup.Settings.AutoUpdate) await FirebaseUtils.PostGroups(newGroups, setup, i).ConfigureAwait(false);
-                    if (setup.Settings.ShouldParseHades) await FirebaseUtils.PostHades(deadGroups, setup).ConfigureAwait(false);
+                    if (setup.Settings.ShouldParseHades && oldGroups.Name == "sections") await FirebaseUtils.PostHades(deadGroups, setup).ConfigureAwait(false);
+                    if (setup.Settings.ShouldUpdateArchive && oldGroups.Name == "sections")
+                    {
+                        List<Archive> archive = Archive.FromJson("archive");
+                        GroupUtils.GenerateArchive(archive, newGroups).ToJson("archive-o.json");
+                        await FirebaseUtils.PostArchive(archive, setup).ConfigureAwait(false);
+                    }
 
                     newGroups.ToJson($"{setup.Files[i]}-o.json");
                 }

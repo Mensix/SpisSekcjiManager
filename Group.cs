@@ -20,7 +20,7 @@ namespace SpisSekcjiManager
         public List<string> Category { get; set; }
         public string Link { get; set; }
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-        public int? Members { get; set; }
+        public int Members { get; set; }
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public int? MembersGrowth { get; set; }
         public string Name { get; set; }
@@ -43,7 +43,7 @@ namespace SpisSekcjiManager
         }
     }
 
-    public static class SerializeGroups
+    public static class SerializeDataset
     {
         public static void ToJson(this Dataset dataset, string fileName) => File.WriteAllText($"{Directory.GetCurrentDirectory()}/data/{fileName}", JsonSerializer.Serialize(dataset, new JsonSerializerOptions
         {

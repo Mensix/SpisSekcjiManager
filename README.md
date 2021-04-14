@@ -54,7 +54,8 @@ The tool used by me to manage [sections list](https://sekcje.github.io/). Writte
     "autoFix": true,
     "autoCompare": true,
     "autoUpdate": false,
-    "shouldParseHades": false
+    "shouldParseHades": false,
+    "shouldUpdateArchive": false
   }
 }
 ```

@@ -25,6 +25,7 @@ namespace SpisSekcjiManager
 
         public bool AutoUpdate { get; set; }
         public bool ShouldParseHades { get; set; }
+        public bool ShouldUpdateArchive { get; set; }
     }
 
     public partial class Setup
