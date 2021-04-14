@@ -10,12 +10,18 @@ namespace SpisSekcjiManager
 
         public string Password { get; set; }
 
-        public List<string> Files { get; set; }
+        public List<Files> Files { get; set; }
 
         public Settings Settings { get; set; }
     }
 
-    public partial class Settings
+    public class Files
+    {
+        public string Input { get; set; }
+        public string Output { get; set; }
+    }
+
+    public class Settings
     {
         public string FirebaseLink { get; set; }
 

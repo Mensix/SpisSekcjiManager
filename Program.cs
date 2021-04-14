@@ -49,7 +49,7 @@ namespace SpisSekcjiManager
 
                 for (int i = 0; i < setup.Files.Count; i++)
                 {
-                    oldGroups = Dataset.FromJson($"{setup.Files[i]}");
+                    oldGroups = Dataset.FromJson($"{setup.Files[i].Input}");
                     (newGroups, deadGroups) = await GroupUtils.ParseGroups(page, oldGroups).ConfigureAwait(false);
 
                     if (setup.Settings.AutoFix) newGroups = GroupUtils.FixGroups(newGroups);
@@ -63,22 +63,22 @@ namespace SpisSekcjiManager
                         await FirebaseUtils.PostArchive(archive, setup).ConfigureAwait(false);
                     }
 
-                    newGroups.ToJson($"{setup.Files[i]}-o.json");
+                    newGroups.ToJson($"{setup.Files[i].Output}");
                 }
             }
             else if (userChoice == "2")
             {
                 for (int i = 0; i < setup.Files.Count; i++)
                 {
-                    oldGroups = Dataset.FromJson($"{setup.Files[i]}");
-                    GroupUtils.FixGroups(oldGroups).ToJson($"{setup.Files[i]}-o.json");
+                    oldGroups = Dataset.FromJson($"{setup.Files[i].Input}");
+                    GroupUtils.FixGroups(oldGroups).ToJson($"{setup.Files[i].Output}.json");
                 }
             }
             else if (userChoice == "3")
             {
                 for (int i = 0; i < setup.Files.Count; i++)
                 {
-                    newGroups = Dataset.FromJson($"{setup.Files[i]}");
+                    newGroups = Dataset.FromJson($"{setup.Files[i].Input}");
                     await FirebaseUtils.PostGroups(newGroups, setup, i).ConfigureAwait(false);
                 }
             }

@@ -49,7 +49,7 @@ The tool used by me to manage [sections list](https://sekcje.github.io/). Writte
 {
   "login": "<email>",
   "password": "<password>",
-  "files": ["groups"],
+  "files": [{"input": "groups", "output": "groups" }],
   "settings": {
     "autoFix": true,
     "autoCompare": true,

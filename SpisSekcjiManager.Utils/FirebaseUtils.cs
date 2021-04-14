@@ -10,7 +10,7 @@ namespace SpisSekcjiManager.Utils
         public async static Task PostGroups(Dataset dataset, Setup setup, int index)
         {
             FirebaseClient firebase = new(setup.Settings.FirebaseLink);
-            await firebase.Child(setup.Files[index]).PutAsync(SerializeDataset.ToString(dataset)).ConfigureAwait(false);
+            await firebase.Child(setup.Files[index].Input).PutAsync(SerializeDataset.ToString(dataset)).ConfigureAwait(false);
         }
 
         public async static Task PostHades(Dataset dataset, Setup setup)
