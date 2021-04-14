@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.Encodings.Web;
 
 namespace SpisSekcjiManager
 {
@@ -46,7 +47,9 @@ namespace SpisSekcjiManager
     {
         public static void ToJson(this Dataset dataset, string fileName) => File.WriteAllText($"{Directory.GetCurrentDirectory()}/data/{fileName}", JsonSerializer.Serialize(dataset, new JsonSerializerOptions
         {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            WriteIndented = true,
+            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
         }));
 
         public static string ToString(this Dataset dataset) => JsonSerializer.Serialize(dataset, new JsonSerializerOptions

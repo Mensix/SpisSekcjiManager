@@ -19,11 +19,12 @@ namespace SpisSekcjiManager
     {
         public string FirebaseLink { get; set; }
 
-        public bool? AutoFix { get; set; }
+        public bool AutoFix { get; set; }
 
-        public bool? AutoCompare { get; set; }
+        public bool AutoCompare { get; set; }
 
-        public bool? AutoUpdate { get; set; }
+        public bool AutoUpdate { get; set; }
+        public bool ShouldParseHades { get; set; }
     }
 
     public partial class Setup

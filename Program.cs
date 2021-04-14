@@ -13,9 +13,9 @@ namespace SpisSekcjiManager
         {
             string dataDirectory = $"{Directory.GetCurrentDirectory()}/data";
             Setup setup = Setup.FromJson();
-            Dataset oldGroups, newGroups;
+            Dataset oldGroups, newGroups, deadGroups;
 
-            using var playwright = await Playwright.CreateAsync().ConfigureAwait(false);
+            using IPlaywright playwright = await Playwright.CreateAsync().ConfigureAwait(false);
             await using IChromiumBrowser browser = await playwright.Chromium.LaunchAsync().ConfigureAwait(false);
             IPage page = await browser.NewPageAsync().ConfigureAwait(false);
 
@@ -49,11 +49,12 @@ namespace SpisSekcjiManager
                 for (int i = 0; i < setup.Files.Count; i++)
                 {
                     oldGroups = Dataset.FromJson($"{setup.Files[i]}");
-                    newGroups = await GroupUtils.ParseGroups(page, oldGroups).ConfigureAwait(false);
+                    (newGroups, deadGroups) = await GroupUtils.ParseGroups(page, oldGroups).ConfigureAwait(false);
 
-                    if (setup.Settings.AutoFix == true) newGroups = GroupUtils.FixGroups(newGroups);
-                    if (setup.Settings.AutoCompare == true) newGroups = GroupUtils.CompareGroups(oldGroups, newGroups);
-                    if (setup.Settings.AutoUpdate == true) await FirebaseUtils.PostGroups(newGroups, setup, i).ConfigureAwait(false);
+                    if (setup.Settings.AutoFix) newGroups = GroupUtils.FixGroups(newGroups);
+                    if (setup.Settings.AutoCompare) newGroups = GroupUtils.CompareGroups(oldGroups, newGroups);
+                    if (setup.Settings.AutoUpdate) await FirebaseUtils.PostGroups(newGroups, setup, i).ConfigureAwait(false);
+                    if (setup.Settings.ShouldParseHades) await FirebaseUtils.PostHades(deadGroups, setup).ConfigureAwait(false);
 
                     newGroups.ToJson($"{setup.Files[i]}-o.json");
                 }
@@ -82,7 +83,6 @@ namespace SpisSekcjiManager
             {
                 await FirebaseUtils.ClearSubmissions(setup).ConfigureAwait(false);
             }
-
         }
     }
 }

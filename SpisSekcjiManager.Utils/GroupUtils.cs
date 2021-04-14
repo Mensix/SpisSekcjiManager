@@ -10,9 +10,11 @@ namespace SpisSekcjiManager.Utils
 {
     public static class GroupUtils
     {
-        public static async Task<Dataset> ParseGroups(IPage page, Dataset groups)
+        private static readonly string todayDate = DateTime.Now.ToString("dd/MM/yyyy").Replace(".", "/");
+        public static async Task<(Dataset, Dataset)> ParseGroups(IPage page, Dataset groups)
         {
             List<Group> newGroups = new();
+            List<Group> hadesGroups = new();
             ProgressBarOptions options = new()
             {
                 DisplayTimeInRealTime = false,
@@ -22,7 +24,7 @@ namespace SpisSekcjiManager.Utils
                 BackgroundCharacter = '\u2593'
             };
 
-            using (var progressBar = new ProgressBar(groups.Groups.Count, "Parsing groups...", options))
+            using (ProgressBar progressBar = new ProgressBar(groups.Groups.Count, "Parsing groups...", options))
             {
                 for (int i = 0; i < groups.Groups.Count; i++)
                 {
@@ -42,16 +44,29 @@ namespace SpisSekcjiManager.Utils
                             IsOpen = await page.QuerySelectorAsync("h1 + p").Result.GetInnerTextAsync().ConfigureAwait(false) == "Grupa Publiczna"
                         });
                     }
+                    else
+                    {
+                        hadesGroups.Add(new Group
+                        {
+                            Link = groups.Groups[i].Link,
+                            Name = groups.Groups[i].Name
+                        });
+                    }
                     progressBar.Tick($"{i + 1}/{groups.Groups.Count}");
                 }
             }
 
-            return new Dataset
+            return (new Dataset
             {
-                LastUpdateDate = DateTime.Now.ToString("dd/MM/yyyy").Replace(".", "/"),
+                LastUpdateDate = todayDate,
                 Name = groups.Name,
                 Groups = newGroups
-            };
+            }, new Dataset
+            {
+                LastUpdateDate = todayDate,
+                Name = "deadgroups",
+                Groups = hadesGroups
+            });
         }
 
         public static Dataset FixGroups(Dataset groups)
@@ -59,7 +74,7 @@ namespace SpisSekcjiManager.Utils
             Random random = new();
             return new Dataset()
             {
-                LastUpdateDate = DateTime.Now.ToString("dd/MM/yyyy").Replace(".", "/"),
+                LastUpdateDate = todayDate,
                 Name = groups.Name,
                 Groups = groups.Groups
                                 .Select(x =>
@@ -96,17 +111,15 @@ namespace SpisSekcjiManager.Utils
 
         public static Dataset CompareGroups(Dataset previousGroups, Dataset newGroups)
         {
-            foreach (var n in newGroups.Groups)
+            foreach (Group g in newGroups.Groups)
             {
-                n.MembersGrowth = n.Members - previousGroups.Groups.Find(x => x.Link == n.Link).Members != 0
-                    ? n.Members - previousGroups.Groups.Find(x => x.Link == n.Link).Members
-                    : null;
+                g.MembersGrowth = g.Members - previousGroups.Groups.Find(x => x.Link == g.Link).Members;
             }
 
             return new Dataset()
             {
-                LastUpdateDate = DateTime.Now.ToString("dd/MM/yyyy").Replace(".", "/"),
-                Name = newGroups.Name,
+                LastUpdateDate = todayDate,
+                Name = previousGroups.Name,
                 Groups = newGroups.Groups
             };
         }
