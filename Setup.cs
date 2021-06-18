@@ -6,10 +6,6 @@ namespace SpisSekcjiManager
 {
     public partial class Setup
     {
-        public string Login { get; set; }
-
-        public string Password { get; set; }
-
         public List<Files> Files { get; set; }
 
         public Settings Settings { get; set; }
@@ -24,14 +20,6 @@ namespace SpisSekcjiManager
     public class Settings
     {
         public string FirebaseLink { get; set; }
-
-        public bool AutoFix { get; set; }
-
-        public bool AutoCompare { get; set; }
-
-        public bool AutoUpdate { get; set; }
-        public bool ShouldParseHades { get; set; }
-        public bool ShouldUpdateArchive { get; set; }
     }
 
     public partial class Setup

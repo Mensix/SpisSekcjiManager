@@ -8,8 +8,6 @@
 
   <ItemGroup>
     <PackageReference Include="FirebaseDatabase.NET" Version="4.0.4" />
-    <PackageReference Include="PlaywrightSharp" Version="0.192.0" />
-    <PackageReference Include="ShellProgressBar" Version="5.0.0" />
   </ItemGroup>
 
 </Project>

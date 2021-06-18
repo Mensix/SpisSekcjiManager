@@ -13,18 +13,6 @@ namespace SpisSekcjiManager.Utils
             await firebase.Child(setup.Files[index].Input).PutAsync(SerializeDataset.ToString(dataset)).ConfigureAwait(false);
         }
 
-        public async static Task PostHades(Dataset dataset, Setup setup)
-        {
-            FirebaseClient firebase = new(setup.Settings.FirebaseLink);
-            await firebase.Child("deadgroups").PutAsync(SerializeDataset.ToString(dataset)).ConfigureAwait(false);
-        }
-
-        public async static Task PostArchive(List<Archive> archive, Setup setup)
-        {
-            FirebaseClient firebase = new(setup.Settings.FirebaseLink);
-            await firebase.Child("archive").PutAsync(SerializeArchive.ToString(archive)).ConfigureAwait(false);
-        }
-
         public async static Task ClearSubmissions(Setup setup)
         {
             FirebaseClient firebase = new(setup.Settings.FirebaseLink);

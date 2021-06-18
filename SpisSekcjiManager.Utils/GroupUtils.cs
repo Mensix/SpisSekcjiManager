@@ -3,72 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using PlaywrightSharp;
-using ShellProgressBar;
 
 namespace SpisSekcjiManager.Utils
 {
     public static class GroupUtils
     {
         private static readonly string todayDate = DateTime.Now.ToString("dd/MM/yyyy").Replace(".", "/");
-        public static async Task<(Dataset, Dataset)> ParseGroups(IPage page, Dataset groups)
-        {
-            List<Group> newGroups = new();
-            List<Group> hadesGroups = new();
-            ProgressBarOptions options = new()
-            {
-                DisplayTimeInRealTime = false,
-                ForegroundColor = ConsoleColor.White,
-                ForegroundColorDone = ConsoleColor.DarkGreen,
-                BackgroundColor = ConsoleColor.DarkGray,
-                BackgroundCharacter = '\u2593'
-            };
-
-            using (ProgressBar progressBar = new(groups.Groups.Count, "Parsing groups...", options))
-            {
-                for (int i = 0; i < groups.Groups.Count; i++)
-                {
-                    await page.GoToAsync($"https://mbasic.facebook.com/groups/{groups.Groups[i].Link}").ConfigureAwait(false);
-                    bool groupExists = page.QuerySelectorAllAsync("h1 > div").Result.ToList().Count > 0;
-
-                    if (groupExists)
-                    {
-                        newGroups.Add(new Group
-                        {
-                            Category = groups.Groups[i].Category,
-                            Link = groups.Groups[i].Link,
-                            Members = Convert.ToInt32(await page.QuerySelectorAsync("td + td > span").Result.GetInnerTextAsync().ConfigureAwait(false)),
-                            Name = await page.QuerySelectorAsync("h1 > div").Result.GetInnerTextAsync().ConfigureAwait(false),
-                            IsSection = groups.Groups[i].IsSection,
-                            Keywords = groups.Groups[i].Keywords,
-                            IsOpen = await page.QuerySelectorAsync("h1 + p").Result.GetInnerTextAsync().ConfigureAwait(false) == "Grupa Publiczna"
-                        });
-                    }
-                    else
-                    {
-                        hadesGroups.Add(new Group
-                        {
-                            Link = groups.Groups[i].Link,
-                            Name = groups.Groups[i].Name
-                        });
-                    }
-                    progressBar.Tick($"{i + 1}/{groups.Groups.Count}");
-                }
-            }
-
-            return (new Dataset
-            {
-                LastUpdateDate = todayDate,
-                Name = groups.Name,
-                Groups = newGroups
-            }, new Dataset
-            {
-                LastUpdateDate = todayDate,
-                Name = "deadgroups",
-                Groups = hadesGroups
-            });
-        }
-
         public static Dataset FixGroups(Dataset groups)
         {
             Random random = new();
@@ -122,16 +62,6 @@ namespace SpisSekcjiManager.Utils
                 Name = previousGroups.Name,
                 Groups = newGroups.Groups
             };
-        }
-
-        public static List<Archive> GenerateArchive(List<Archive> archive, Dataset previousGroups)
-        {
-            foreach (Archive a in archive)
-            {
-                a.History.Add(previousGroups.Groups.Find(x => x.Name == a.Name).Members);
-            }
-
-            return archive;
         }
     }
 }
